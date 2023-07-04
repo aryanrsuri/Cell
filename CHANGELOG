@@ -1,3 +1,8 @@
 0.0.1@alpha
 Cell now grows a cell structure over generations after an initial shuffle
 & can be printed in pretty print format 
+
+0.0.2@alpha
+Cell is correctly shuffled
+& Cells grow in interesting pattern over generation
+& deno App is made
