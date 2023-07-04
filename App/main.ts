@@ -17,7 +17,7 @@ const HTML = `
   <main>
     <div>
 
-      Zig wasm
+    ${Deno.cwd()}/index.html
     </div>
   </main>
   <script>
@@ -30,13 +30,14 @@ const HTML = `
 </html>
 `;
 
-const INDEX = await Deno.readFile("../App/index.html");
+// const INDEX = await Deno.readFile("../App/index.html");
 // serve(async (req) => {
 //   return await serveFile(req, `${Deno.cwd()}/index.html`);
 // });
 
+console.log(Deno.cwd());
 serve(async () => {
-  return new Response(INDEX, {
+  return new Response(HTML, {
     headers: {
       "content-type": "text/html",
     },
