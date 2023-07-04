@@ -30,12 +30,13 @@ const HTML = `
 </html>
 `;
 
+const INDEX = await Deno.readFile("../App/index.html");
 // serve(async (req) => {
 //   return await serveFile(req, `${Deno.cwd()}/index.html`);
 // });
 
 serve(async () => {
-  return new Response(HTML, {
+  return new Response(INDEX, {
     headers: {
       "content-type": "text/html",
     },
