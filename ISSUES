@@ -1,0 +1,2 @@
+/src/box.zig
+* there might be better way to define State & Cell in one union enum
