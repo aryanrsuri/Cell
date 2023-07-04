@@ -1,6 +1,6 @@
 const std = @import("std");
 
-pub var shuffle = std.rand.DefaultPrng.init(10);
+var shuffle = std.rand.DefaultPrng.init(0);
 
 pub const Cell = struct {
     const Self = @This();
@@ -10,8 +10,8 @@ pub const Cell = struct {
     pub fn init() Self {
         return .{
             .state = false,
-            .current = 0b0,
-            .cycles = 0b0,
+            .current = 0,
+            .cycles = 0,
         };
     }
     pub fn invert(self: *Self) void {
@@ -58,7 +58,7 @@ pub const Structure = struct {
         self.* = undefined;
     }
 
-    pub fn invert_cell(self: *Self, index: usize) !void {
+    fn invert_cell(self: *Self, index: usize) !void {
         if (index >= self.Cells.len) return error.SaturedStructure;
         self.Cells[index].invert();
     }
@@ -69,7 +69,11 @@ pub const Structure = struct {
         return &safe_cell;
     }
 
-    pub fn shuffle_cells(self: *Self) !void {
+    pub fn get_cells(self: *Self) []Cell {
+        return self.Cells;
+    }
+
+    fn shuffle_cells(self: *Self) !void {
         var iterator: usize = 0;
         const size = self.Cells.len;
         while (iterator < size) : (iterator = iterator + 1) {
@@ -125,4 +129,6 @@ test "Cell" {
     defer board.deinit();
     _ = try board.cycle_cells(1000);
     board.print(1);
+    var res = board.get_cells();
+    std.debug.print("{any}", .{res});
 }
