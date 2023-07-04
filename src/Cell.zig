@@ -18,18 +18,15 @@ pub const Cell = struct {
         self.state = !self.state;
     }
 
-    pub fn set(self: *Self, state: bool) void {
-        self.state = state;
-    }
-
-    pub fn get(self: *Self) *Self {
-        return self;
+    pub fn stasis(self: *Self) void {
+        self.state = false;
+        self.current = 0;
     }
 
     pub fn grow(self: *Self, amount: u64) void {
-        if (!self.state) return;
         self.current += amount;
         if (self.current > 128) {
+            self.state = true;
             self.cycles += 1;
             self.current = 0;
         }
@@ -112,9 +109,8 @@ pub const Structure = struct {
                 var prev = self.Cells[curr - 1];
                 var peek = self.Cells[curr + 1];
                 if (prev.state and peek.state) {
-                    prev.invert();
-                    peek.invert();
-
+                    prev.stasis();
+                    peek.stasis();
                     _ = try self.grow_cell(curr);
                 }
             }
@@ -127,7 +123,6 @@ pub const Structure = struct {
 test "Cell" {
     var board = Structure.init(std.testing.allocator, 128);
     defer board.deinit();
-    _ = try board.cycle_cells(400);
-    board.print(0);
+    _ = try board.cycle_cells(1000);
     board.print(1);
 }
