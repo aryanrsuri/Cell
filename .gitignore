@@ -1,2 +1,7 @@
 zig-cache/
 zig-out/
+
+.DS_Store
+
+App/deno.lock
+App/.DS_Store

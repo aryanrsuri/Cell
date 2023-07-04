@@ -1,3 +1,8 @@
 /src/box.zig
 * there might be better way to define State & Cell in one union enum
 * How to visualise is the bigg issue
+* How to convert to wasm and return functions of all the cell data
+
+/App
+* How to serve index.html static not direct in file
+* make a visual
