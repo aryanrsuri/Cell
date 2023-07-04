@@ -129,29 +129,3 @@ pub const Structure = struct {
         std.debug.print("\n -{}- \n", .{context});
     }
 };
-
-extern "cells" fn wasm(usize, usize) *[]Cell;
-export fn wasm(gens: usize, size: usize) *[]Cell {
-    var stream = std.heap.GeneralPurposeAllocator(.{}){};
-    const gpa = stream.allocator();
-    var structure = Structure.init(gpa, size);
-    defer structure.deinit();
-
-    structure.cycle_cells(gens) catch {
-        @panic("unable to cycle");
-    };
-
-    var result = gpa.alloc(Cell, size) catch {
-        @panic("allocation failed");
-    };
-
-    result = structure.Cells;
-    return &result;
-}
-
-//
-// test "Cell" {
-//     var result = wasm(100, 16);
-//
-//     std.debug.print(" {any} \n", .{result.*});
-// }

@@ -1,20 +1,22 @@
 const std = @import("std");
-const wasm = @import("Cell.zig").wasm;
+const ray = @cImport({
+    @cInclude("raylib.h");
+});
 
 pub fn main() !void {
+    const screenWidth = 800;
+    const screenHeight = 450;
 
-    // stdout is for the actual output of your application, for example if you
-    // are implementing gzip, then only the compressed bytes should be sent to
-    // stdout, not any debugging messages.
-    const stdout_file = std.io.getStdOut().writer();
-    var bw = std.io.bufferedWriter(stdout_file);
-    const stdout = bw.writer();
+    ray.InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
+    defer ray.CloseWindow();
 
-    var stream = std.heap.GeneralPurposeAllocator(.{}){};
-    var gpa = stream.allocator();
-    var structure = wasm(gpa, 100, 4);
-    // var structure = cell.Structure.init(gpa, 128);
-    // _ = try structure.cycle_cells(1000);
-    try stdout.print("{any}\n", .{structure.*});
-    try bw.flush();
+    ray.SetTargetFPS(60);
+
+    while (!ray.WindowShouldClose()) {
+        ray.BeginDrawing();
+        defer ray.EndDrawing();
+
+        ray.ClearBackground(ray.RAYWHITE);
+        ray.DrawText("Hello, World!", 190, 200, 20, ray.LIGHTGRAY);
+    }
 }
