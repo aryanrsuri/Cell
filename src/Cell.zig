@@ -1,5 +1,4 @@
-const std = @import("std");
-
+pub const std = @import("std");
 var shuffle = std.rand.DefaultPrng.init(0);
 
 pub const Cell = struct {
@@ -33,17 +32,18 @@ pub const Cell = struct {
     }
 };
 
+pub const Context = enum(u8) {
+    state,
+    cycles,
+    verbose,
+};
+
 pub const Structure = struct {
     const Self = @This();
-    const Context = enum(u8) {
-        state,
-        cycles,
-        verbose,
-    };
     Cells: []Cell,
     Allocator: std.mem.Allocator,
 
-    pub fn init(allocator: std.mem.Allocator, comptime size: usize) Self {
+    pub fn init(allocator: std.mem.Allocator, size: usize) Self {
         var stream = allocator.alloc(Cell, size) catch {
             @panic(" allocation failed ! ");
         };
@@ -63,16 +63,6 @@ pub const Structure = struct {
         self.Cells[index].invert();
     }
 
-    pub fn get_cell(self: *Self, index: usize) !*Cell {
-        if (index > self.Cells.len) return error.SaturedStructure;
-        var safe_cell: Cell = self.Cells[index];
-        return &safe_cell;
-    }
-
-    pub fn get_cells(self: *Self) []Cell {
-        return self.Cells;
-    }
-
     fn shuffle_cells(self: *Self) !void {
         var iterator: usize = 0;
         const size = self.Cells.len;
@@ -83,26 +73,19 @@ pub const Structure = struct {
         }
     }
 
-    pub fn print(self: *Self, context: u8) void {
-        std.debug.print("\n\n -{}- ", .{@intToEnum(Context, context)});
-        for (self.Cells, 0..) |cell, i| {
-            if (i % 10 == 0) {
-                std.debug.print(" \n ", .{});
-            }
-
-            switch (context) {
-                0 => std.debug.print(" {} ", .{@boolToInt(cell.state)}),
-                1 => std.debug.print(" {} ", .{cell.cycles - 12297829382473034410}),
-                2 => std.debug.print(" [{}]{any}.{any}.{any}", .{ i, cell.cycles - 12297829382473034410, cell.current - 12297829382473034410, cell.state }),
-                else => unreachable,
-            }
-        }
-        std.debug.print("\n -{}- \n", .{@intToEnum(Context, context)});
-    }
-
     fn grow_cell(self: *Self, index: usize) !void {
         if (index > self.Cells.len) return error.SaturedStructure;
         self.Cells[index].grow(index);
+    }
+
+    pub fn get_cell(self: *Self, index: usize) !*Cell {
+        if (index > self.Cells.len) return error.SaturedStructure;
+        var safe_cell: Cell = self.Cells[index];
+        return &safe_cell;
+    }
+
+    pub fn get_cells(self: *Self) []Cell {
+        return self.Cells;
     }
 
     pub fn cycle_cells(self: *Self, gens: usize) !void {
@@ -122,13 +105,53 @@ pub const Structure = struct {
             _ = try self.shuffle_cells();
         }
     }
+
+    pub fn print(self: *Self, context: Context) void {
+        std.debug.print("\n\n -{}- ", .{context});
+        for (self.Cells, 0..) |cell, i| {
+            if (i % 5 == 0) {
+                std.debug.print(" \n ", .{});
+            }
+
+            switch (context) {
+                Context.state => std.debug.print(" {} ", .{@intFromBool(cell.state)}),
+                Context.cycles => std.debug.print(" {} ", .{cell.cycles - 12297829382473034410}),
+                Context.verbose => {
+                    // evil if() that is feature not bug *_*
+                    var res: usize = cell.current;
+                    if (cell.current == 12297829382473034410) {
+                        res = cell.current - 12297829382473034410;
+                    }
+                    std.debug.print(" [{}]{}.{}.{} ", .{ i, @intFromBool(cell.state), (cell.cycles - 12297829382473034410), (res) });
+                },
+            }
+        }
+        std.debug.print("\n -{}- \n", .{context});
+    }
 };
 
-test "Cell" {
-    var board = Structure.init(std.testing.allocator, 128);
-    defer board.deinit();
-    _ = try board.cycle_cells(1000);
-    board.print(1);
-    var res = board.get_cells();
-    std.debug.print("{any}", .{res});
+extern "cells" fn wasm(usize, usize) *[]Cell;
+export fn wasm(gens: usize, size: usize) *[]Cell {
+    var stream = std.heap.GeneralPurposeAllocator(.{}){};
+    const gpa = stream.allocator();
+    var structure = Structure.init(gpa, size);
+    defer structure.deinit();
+
+    structure.cycle_cells(gens) catch {
+        @panic("unable to cycle");
+    };
+
+    var result = gpa.alloc(Cell, size) catch {
+        @panic("allocation failed");
+    };
+
+    result = structure.Cells;
+    return &result;
 }
+
+//
+// test "Cell" {
+//     var result = wasm(100, 16);
+//
+//     std.debug.print(" {any} \n", .{result.*});
+// }

@@ -1,5 +1,5 @@
 const std = @import("std");
-const cell = @import("Cell.zig");
+const wasm = @import("Cell.zig").wasm;
 
 pub fn main() !void {
 
@@ -12,9 +12,9 @@ pub fn main() !void {
 
     var stream = std.heap.GeneralPurposeAllocator(.{}){};
     var gpa = stream.allocator();
-    var structure = cell.Structure.init(gpa, 128);
-    var result = structure.get_cells();
-    try stdout.print("{any}\n", .{result});
-
-    try bw.flush(); // don't forget to flush!
+    var structure = wasm(gpa, 100, 4);
+    // var structure = cell.Structure.init(gpa, 128);
+    // _ = try structure.cycle_cells(1000);
+    try stdout.print("{any}\n", .{structure.*});
+    try bw.flush();
 }

@@ -13,13 +13,16 @@
 
   <main>
     <div>
-
-      Zig wasm
+        Cellular Simualation
     </div>
   </main>
   <script>
 
-    console.log("Hello World throuh JS");
+    const wmodule = WebAssembly.compileStreaming(fetch('../main.wasm'));
+    const winstance = WebAssembly.isntantiate(wmodule);
+    console.log(winstance);
+
+
   </script>
 
 </body>
